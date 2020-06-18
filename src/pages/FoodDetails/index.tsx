@@ -96,15 +96,6 @@ const FoodDetails: React.FC = () => {
   }, [routeParams]);
 
   function handleIncrementExtra(id: number): void {
-    // Increment extra quantity
-
-    // const extraIndex = extras.findIndex(item => item.id === id);
-
-    // extras[extraIndex].quantity += 1;
-    // console.log(extras[extraIndex]);
-
-    // setExtras(state => extras);
-
     setExtras(
       extras.map(extra =>
         extra.id === id ? { ...extra, quantity: extra.quantity + 1 } : extra,
@@ -114,8 +105,19 @@ const FoodDetails: React.FC = () => {
 
   function handleDecrementExtra(id: number): void {
     // Decrement extra quantity
-    const extraIndex = extras.findIndex(item => item.id === id);
-    if (extras[extraIndex].quantity === 1) return;
+    const extra = extras.find(item => item.id === id);
+    if (!extra) {
+      return;
+    }
+    if (extra.quantity > 0) {
+      setExtras(
+        extras.map(extraItem =>
+          extraItem.id === id
+            ? { ...extraItem, quantity: extraItem.quantity - 1 }
+            : extraItem,
+        ),
+      );
+    }
   }
 
   function handleIncrementFood(): void {
