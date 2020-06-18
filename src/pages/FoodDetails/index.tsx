@@ -10,6 +10,7 @@ import { Image } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { State } from 'react-native-gesture-handler';
 import formatValue from '../../utils/formatValue';
 
 import api from '../../services/api';
@@ -74,6 +75,21 @@ const FoodDetails: React.FC = () => {
   useEffect(() => {
     async function loadFood(): Promise<void> {
       // Load a specific food with extras based on routeParams id
+
+      const { data } = await api.get(`/foods/${routeParams.id}`);
+      setFood(data);
+      const listExtra = data.extras as Extra[];
+
+      const extra = listExtra.map(({ id, name, value, quantity }) => {
+        return {
+          id,
+          name,
+          value,
+          quantity: 0,
+        };
+      });
+
+      setExtras(extra);
     }
 
     loadFood();
@@ -81,18 +97,38 @@ const FoodDetails: React.FC = () => {
 
   function handleIncrementExtra(id: number): void {
     // Increment extra quantity
+
+    // const extraIndex = extras.findIndex(item => item.id === id);
+
+    // extras[extraIndex].quantity += 1;
+    // console.log(extras[extraIndex]);
+
+    // setExtras(state => extras);
+
+    setExtras(
+      extras.map(extra =>
+        extra.id === id ? { ...extra, quantity: extra.quantity + 1 } : extra,
+      ),
+    );
   }
 
   function handleDecrementExtra(id: number): void {
     // Decrement extra quantity
+    const extraIndex = extras.findIndex(item => item.id === id);
+    if (extras[extraIndex].quantity === 1) return;
   }
 
   function handleIncrementFood(): void {
     // Increment food quantity
+
+    setFoodQuantity(state => state + 1);
   }
 
   function handleDecrementFood(): void {
     // Decrement food quantity
+    if (foodQuantity > 1) {
+      setFoodQuantity(state => state - 1);
+    }
   }
 
   const toggleFavorite = useCallback(() => {
@@ -101,6 +137,13 @@ const FoodDetails: React.FC = () => {
 
   const cartTotal = useMemo(() => {
     // Calculate cartTotal
+    const finalExtraValue = extras
+      .map(item => Number(item.quantity) * Number(item.value))
+      .reduce((acc: number, value) => acc + value, 0);
+
+    const finalValue = foodQuantity * food.price + finalExtraValue;
+
+    return formatValue(finalValue);
   }, [extras, food, foodQuantity]);
 
   async function handleFinishOrder(): Promise<void> {
